@@ -14,8 +14,9 @@ router.get('/', (req, res) => {
 })
 
 router.post('/create_user',
-    [body('email').isEmail(),
-    body('password').isLength({ min: 6 }),],
+    [body('name', 'Enter the valid name').isLength({ min: 3 }),
+    body('email', 'Enter the valid Email').isEmail(),
+    body('password', 'Enter the valid Password').isLength({ min: 6 }),],
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -38,7 +39,6 @@ router.post('/create_user',
                 res.status(400).json({ error: err.message })
             })
             const authToken = await jwt.sign({ user: { id: user.id } }, JWT_SECRET);
-            console.log(authToken)
             res.json({
                 authToken: authToken,
                 status: "User Created Successfully"
@@ -49,4 +49,33 @@ router.post('/create_user',
 
     }
 );
+
+router.post('/login_user', [body('email').isEmail(), body('password', 'password can not be blank').exists()], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array() });
+    }
+    try {
+        const { email, password } = req.body
+        let user = await User.findOne({ email: req.body.email })
+        if (!user) {
+            return res.status(400).json({ error: "Try to login with correct credentials" });
+        }
+
+        const passwordCompare = await bcrypt.compare(password, user.password)
+        if (!passwordCompare) {
+            return res.status(400).json({ error: "Try to login with correct credentials" });
+        }
+        const authToken = await jwt.sign({ user: { id: user.id } }, JWT_SECRET);
+        res.json({
+            authToken: authToken,
+            status: "Login Successfully"
+        })
+
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
+
+
 module.exports = router
