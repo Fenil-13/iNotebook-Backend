@@ -4,6 +4,7 @@ const router = express.Router()
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const authUser = require('../middleware/authUser')
 
 const JWT_SECRET = 'FenilDevloper013'
 
@@ -57,7 +58,7 @@ router.post('/login_user', [body('email').isEmail(), body('password', 'password 
     }
     try {
         const { email, password } = req.body
-        let user = await User.findOne({ email: req.body.email })
+        let user = await User.findOne({ email: email })
         if (!user) {
             return res.status(400).json({ error: "Try to login with correct credentials" });
         }
@@ -77,5 +78,17 @@ router.post('/login_user', [body('email').isEmail(), body('password', 'password 
     }
 })
 
+
+router.get('/get_user', authUser, async (req, res) => {
+
+    try {
+        const userId = req.data.id;
+        const user = await User.findById(userId).select("-password")
+        res.json({ user: user, status: "User Fetched Successfully" })
+
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
 
 module.exports = router
