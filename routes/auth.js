@@ -78,7 +78,6 @@ router.post('/login_user', [body('email').isEmail(), body('password', 'password 
     }
 })
 
-
 router.get('/get_user', authUser, async (req, res) => {
 
     try {

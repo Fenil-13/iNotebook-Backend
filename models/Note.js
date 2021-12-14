@@ -14,8 +14,13 @@ const NotesSchema = new mongoose.Schema({
         type: String,
         default: "General"
     },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        required: true
+    },
     date: {
-        type: String,
+        type: Date,
         default: Date.now
     }
 }, { versionKey: false })
